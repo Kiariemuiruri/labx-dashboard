@@ -143,12 +143,12 @@ st.markdown(
 # Authentication
 # =========================
 try:
-    config = yaml.safe_load(open('config.yaml'))
+    # Load config from secrets
     authenticator = stauth.Authenticate(
-        config['credentials'],
-        config['cookie']['name'],
-        config['cookie']['key'],
-        config['cookie']['expiry_days']
+        st.secrets['credentials']['usernames'],
+        st.secrets['cookie']['name'],
+        st.secrets['cookie']['key'],
+        st.secrets['cookie']['expiry_days']
     )
 
     # Handle login with session state
@@ -207,7 +207,7 @@ if authentication_status:
     # Google Sheets setup
     # ------------------------- 
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-    creds = Credentials.from_service_account_file('credentials.json', scopes=SCOPES)
+    creds = Credentials.from_service_account_info(st.secrets['google_sheets']['credentials_json'], scopes=SCOPES)
     gc = gspread.authorize(creds)
     sheet = gc.open("Microfinance Leads").sheet1
 
