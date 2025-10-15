@@ -211,7 +211,7 @@ except Exception as e:
 current_time = datetime.now().hour
 if current_time < 12:
     greeting = "Good Morning"
-elif 12 <= current_time < 16:
+elif 12 >= current_time < 16:
     greeting = "Good Afternoon"
 else:
     greeting = "Good Evening"
