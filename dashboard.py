@@ -1,12 +1,14 @@
 import streamlit as st
 import pandas as pd
 import gspread
+import json
+import os
 from google.oauth2.service_account import Credentials
 import plotly.express as px
-import yaml
-from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
 from datetime import datetime
+import yaml
+from yaml.loader import SafeLoader
 
 # =========================
 # Page Config
@@ -140,18 +142,69 @@ st.markdown(
 )
 
 # =========================
-# Authentication
+# Authentication Setup
 # =========================
+# Check if running on Render
+is_render = os.getenv("RENDER") == "true"
+
+# Load config.yaml (local file or env var)
+if is_render:
+    config_yaml = os.getenv("CONFIG_YAML")
+    if not config_yaml:
+        st.error("CONFIG_YAML environment variable is missing on Render. Expected YAML content for authentication.")
+        st.stop()
+    try:
+        config = yaml.load("config.yaml", Loader=SafeLoader)
+        if not config:
+            raise ValueError("Parsed YAML is empty.")
+    except yaml.YAMLError as e:
+        st.error(f"Invalid YAML in CONFIG_YAML: {str(e)}. Check your YAML content in Render environment variables.")
+        st.stop()
+    except Exception as e:
+        st.error(f"Error parsing CONFIG_YAML: {str(e)}.")
+        st.stop()
+else:
+    try:
+        with open("config.yaml", "r") as f:
+            config = yaml.safe_load(f)
+        if not config:
+            raise ValueError("config.yaml is empty.")
+    except FileNotFoundError:
+        st.error("config.yaml not found in project root. Please create it with credentials, cookie, and preauthorized keys.")
+        st.stop()
+    except yaml.YAMLError as e:
+        st.error(f"Invalid YAML in config.yaml: {str(e)}.")
+        st.stop()
+    except Exception as e:
+        st.error(f"Error reading config.yaml: {str(e)}.")
+        st.stop()
+
+# Validate config structure
+creds_dict = config.get("credentials", {})
+cookie_config = config.get("cookie", {})
+preauthorized = config.get("preauthorized", [])
+if "usernames" not in creds_dict:
+    st.error("config.yaml missing 'credentials.usernames' key. Expected format: credentials: {usernames: {...}}")
+    st.stop()
+
+cookie_name = cookie_config.get("name", "labx_cookie")
+cookie_key = cookie_config.get("key", "default_key")
+if cookie_key == "default_key":
+    st.warning("Using default cookie key. Set a strong random key in config.yaml for security.")
+cookie_expiry_days = float(cookie_config.get("expiry_days", 30))
+
+# Initialize authenticator with auto_hash=False (assuming pre-hashed passwords)
 try:
-    # Load config from secrets
     authenticator = stauth.Authenticate(
-        st.secrets['credentials']['usernames'],
-        st.secrets['cookie']['name'],
-        st.secrets['cookie']['key'],
-        st.secrets['cookie']['expiry_days']
+        creds_dict,
+        cookie_name,
+        cookie_key,
+        cookie_expiry_days,
+        preauthorized,
+        auto_hash=False  # Use False for pre-hashed passwords
     )
 
-    # Handle login with session state
+    # Render login module
     if st.session_state.get("authentication_status") is None:
         st.markdown('<div class="main">', unsafe_allow_html=True)
         st.markdown('<div class="login-card">', unsafe_allow_html=True)
@@ -180,8 +233,11 @@ try:
     name = st.session_state.get("name")
     username = st.session_state.get("username")
 
+except KeyError as e:
+    st.error(f"KeyError in Authenticate: Missing key '{str(e)}' in credentials. Ensure 'usernames' exists with user data.")
+    st.stop()
 except Exception as e:
-    st.error(f"Authentication error: {str(e)}. Please update Streamlit to version 1.30.0 or higher and ensure compatibility with streamlit_authenticator 0.4.2.")
+    st.error(f"Authentication setup error: {str(e)}. Verify streamlit-authenticator==0.4.2 and Streamlit>=1.30.0. Config keys: {list(config.keys()) if 'config' in locals() else 'N/A'}")
     authentication_status = False
 
 # =========================
@@ -190,7 +246,7 @@ except Exception as e:
 current_time = datetime.now().hour
 if current_time < 12:
     greeting = "Good Morning"
-elif 12 <= current_time < 18:
+elif 12 <= current_time < 16:
     greeting = "Good Afternoon"
 else:
     greeting = "Good Evening"
@@ -200,14 +256,43 @@ else:
 # =========================
 if authentication_status:
     st.sidebar.markdown("LabX Dashboard")
-    authenticator.logout('Logout', 'sidebar')
+    logout_result = authenticator.logout('Logout', 'sidebar')
+    if logout_result:
+        st.rerun()  # Forces UI refresh after logout
     st.header(f"{greeting} {name}")
 
     # ------------------------- 
     # Google Sheets setup
     # ------------------------- 
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-    creds = Credentials.from_service_account_info(st.secrets['google_sheets']['credentials_json'], scopes=SCOPES)
+    # Load Google Sheets credentials (local file or env var)
+    if is_render:
+        google_creds_json = os.getenv("GOOGLE_SHEETS_CREDENTIALS")
+        if not google_creds_json:
+            st.error("GOOGLE_SHEETS_CREDENTIALS environment variable is missing on Render. Expected JSON content for Google Service Account.")
+            st.stop()
+        try:
+            google_creds = json.loads('credentials.json')
+        except json.JSONDecodeError as e:
+            st.error(f"Invalid JSON in GOOGLE_SHEETS_CREDENTIALS: {str(e)}. Check your JSON content in Render environment variables.")
+            st.stop()
+    else:
+        try:
+            with open("credentials.json", "r") as f:
+                google_creds = json.load(f)
+        except FileNotFoundError:
+            st.error("credentials.json not found in project root. Please create it with Google Service Account credentials.")
+            st.stop()
+        except json.JSONDecodeError as e:
+            st.error(f"Invalid JSON in credentials.json: {str(e)}.")
+            st.stop()
+        except Exception as e:
+            st.error(f"Error reading credentials.json: {str(e)}.")
+            st.stop()
+
+    # Create credentials
+    creds = Credentials.from_service_account_info(google_creds, scopes=SCOPES)
+
     gc = gspread.authorize(creds)
     sheet = gc.open("Microfinance Leads").sheet1
 
