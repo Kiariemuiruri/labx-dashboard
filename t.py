@@ -140,29 +140,25 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-import json
+import os
+import streamlit_authenticator as stauth
 
-def to_dict(obj):
-    """Safely convert SecretsDict or nested structures to a plain dict."""
-    if isinstance(obj, (dict, st.runtime.secrets.Secrets)):
-        return {k: to_dict(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [to_dict(v) for v in obj]
-    else:
-        return obj
+# --- Load credentials and cookie settings from Render environment variables ---
+credentials = {
+    "usernames": {
+        os.getenv("AUTH_USER_NAME"): {
+            "name": os.getenv("AUTH_USER_NAME"),
+            "email": os.getenv("AUTH_USER_EMAIL"),
+            "password": os.getenv("AUTH_USER_HASHED_PASSWORD"),
+        }
+    }
+}
 
-# convert to a dictionary
-config = to_dict(st.secrets)
+cookie_name = os.getenv("AUTH_COOKIE_NAME", "app_cookie")
+cookie_key = os.getenv("AUTH_COOKIE_KEY", "default_key")
+cookie_expiry_days = int(os.getenv("AUTH_COOKIE_EXPIRY_DAYS", "30"))
 
-credentials = config["credentials"]
-cookie = config["cookie"]
-
-# Extract values
-cookie_name = cookie["name"]
-cookie_key = cookie["key"]
-cookie_expiry_days = cookie["expiry_days"]
-
-# Initialize authenticator
+# --- Initialize authenticator ---
 try:
     authenticator = stauth.Authenticate(
         credentials,
@@ -170,6 +166,11 @@ try:
         cookie_key,
         cookie_expiry_days
     )
+except Exception as e:
+    import logging
+    logging.error(f"Error initializing authenticator: {e}")
+    raise
+
 
     # Render login module
    # name, authentication_status, username = authenticator.login("Login", "main")
