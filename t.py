@@ -7,6 +7,7 @@ import yaml
 from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
 from datetime import datetime
+import os
 
 # =========================
 # Page Config
@@ -176,7 +177,7 @@ try:
     if st.session_state.get("authentication_status") is None:
         st.markdown('<div class="main">', unsafe_allow_html=True)
         st.markdown('<div class="login-card">', unsafe_allow_html=True)
-        st.markdown("<h2>🔐 LabX</h2>", unsafe_allow_html=True)
+        st.markdown("<h2>LabX</h2>", unsafe_allow_html=True)
         
         login_result = authenticator.login(
             location='main',
@@ -232,7 +233,7 @@ if authentication_status:
     # ------------------------- 
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
    # Parse the JSON string to a dict
-    google_creds = json.loads(st.secrets["google_sheets"]["credentials_json"])
+    google_creds = json.loads(os.getenv('GOOGLE_CREDENTIALS'))
 
     # Create credentials
     creds = Credentials.from_service_account_info(google_creds, scopes=SCOPES)
