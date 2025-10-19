@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import gspread, json, copy
+import gspread, json, copy, base64
 from google.oauth2.service_account import Credentials
 import plotly.express as px
 import yaml
@@ -224,15 +224,14 @@ if authentication_status:
     # Google Sheets setup
     # ------------------------- 
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-   # Parse the JSON string to a dict
-    raw_creds = os.getenv("GOOGLE_CREDENTIALS")
-    if not raw_creds:
-        raise ValueError("GOOGLE_CREDENTIALS not found")
+   # Load and decode Base64 credentials
+    b64_creds = os.getenv("GOOGLE_CREDENTIALS_B64")
+    if not b64_creds:
+        raise ValueError("Missing GOOGLE_CREDENTIALS_B64 environment variable")
 
-    # Convert escaped newlines to real ones
-    fixed_creds = raw_creds.replace("\\n", "\n")
+    decoded = base64.b64decode(b64_creds).decode()
+    google_creds = json.loads(decoded)
 
-    google_creds = json.loads(fixed_creds)
     creds = Credentials.from_service_account_info(google_creds, scopes=SCOPES)
 
     gc = gspread.authorize(creds)
