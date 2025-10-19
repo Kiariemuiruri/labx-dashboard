@@ -248,27 +248,6 @@ if authentication_status:
         pdf_buffer.seek(0)
         return pdf_buffer
 
-    # Render icon button at top right
-    download_icon_html = f"""
-        <div style='position: fixed; top: 15px; right: 25px; z-index: 999;'>
-            <a href="data:application/octet-stream;base64,{b64_pdf}" download="LabX_Dashboard.pdf"
-            style="background-color:#1E90FF; padding:10px 12px; border-radius:50%; text-decoration:none;
-                    box-shadow:0 0 10px rgba(0,0,0,0.3);">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="white" viewBox="0 0 16 16">
-                    <path d="M.5 9.9a.5.5 0 0 1 .5.5V13a1 1 0 0 0 1 1h12a1
-                            1 0 0 0 1-1V10.4a.5.5 0 0 1 1 0V13a2 2
-                            0 0 1-2 2H2a2 2 0 0 1-2-2V10.4a.5.5 0 0 1
-                            .5-.5z"/>
-                    <path d="M7.646 10.854a.5.5 0 0 0 .708 0l3-3a.5.5 0
-                            0 0-.708-.708L8.5 9.293V1.5a.5.5 0 0
-                            0-1 0v7.793L5.354 7.146a.5.5 0 1
-                            0-.708.708l3 3z"/>
-                </svg>
-            </a>
-        </div>
-    """
-    st.markdown(download_icon_html, unsafe_allow_html=True)
-
     st.sidebar.markdown(f"{greeting}, {name}")
     logout_result = authenticator.logout('Logout', 'sidebar')
     if logout_result:
@@ -330,6 +309,26 @@ if authentication_status:
     # Create PDF bytes
     pdf_buffer = create_dashboard_pdf(filtered_df, name)
     b64_pdf = base64.b64encode(pdf_buffer.read()).decode('utf-8')
+    # Render icon button at top right
+    download_icon_html = f"""
+        <div style='position: fixed; top: 15px; right: 25px; z-index: 999;'>
+            <a href="data:application/octet-stream;base64,{b64_pdf}" download="LabX_Dashboard.pdf"
+            style="background-color:#1E90FF; padding:10px 12px; border-radius:50%; text-decoration:none;
+                    box-shadow:0 0 10px rgba(0,0,0,0.3);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="white" viewBox="0 0 16 16">
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5V13a1 1 0 0 0 1 1h12a1
+                            1 0 0 0 1-1V10.4a.5.5 0 0 1 1 0V13a2 2
+                            0 0 1-2 2H2a2 2 0 0 1-2-2V10.4a.5.5 0 0 1
+                            .5-.5z"/>
+                    <path d="M7.646 10.854a.5.5 0 0 0 .708 0l3-3a.5.5 0
+                            0 0-.708-.708L8.5 9.293V1.5a.5.5 0 0
+                            0-1 0v7.793L5.354 7.146a.5.5 0 1
+                            0-.708.708l3 3z"/>
+                </svg>
+            </a>
+        </div>
+    """
+    st.markdown(download_icon_html, unsafe_allow_html=True)
     # ------------------------- 
     # KPIs
     # ------------------------- 
