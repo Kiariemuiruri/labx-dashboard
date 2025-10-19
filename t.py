@@ -34,6 +34,9 @@ st.markdown(
             padding-top: 0.5rem !important;  /* default is ~6rem */
             padding-bottom: 0rem !important;
         }
+        .css-1aumxhk { /* Header */
+        display: none;
+    }
         [data-testid="stSidebar"] {
             background-color: rgba(30,144,255,0.3);
             padding: 20px;
