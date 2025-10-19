@@ -140,9 +140,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-import os
-import streamlit_authenticator as stauth
-
 # --- Load credentials and cookie settings from Render environment variables ---
 credentials = {
     "usernames": {
@@ -166,12 +163,6 @@ try:
         cookie_key,
         cookie_expiry_days
     )
-except Exception as e:
-    import logging
-    logging.error(f"Error initializing authenticator: {e}")
-    raise
-
-
     # Render login module
    # name, authentication_status, username = authenticator.login("Login", "main")
 
