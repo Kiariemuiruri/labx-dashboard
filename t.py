@@ -37,6 +37,14 @@ st.markdown(
         .css-1aumxhk { /* Header */
         display: none;
     }
+    .st-emotion-cache-gquqoo {
+        background: linear-gradient(to right, #3B82F6, #9333EA) !important;
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+    }
         [data-testid="stSidebar"] {
             background-color: rgba(30,144,255,0.3);
             padding: 20px;
