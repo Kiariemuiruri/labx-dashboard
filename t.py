@@ -217,7 +217,7 @@ if authentication_status:
     logout_result = authenticator.logout('Logout', 'sidebar')
     if logout_result:
         st.rerun()  # Forces UI refresh after logout
-    st.header(f"{greeting} {name}")
+    st.header(f"{greeting}, {name}")
 
 
     # ------------------------- 
@@ -225,9 +225,14 @@ if authentication_status:
     # ------------------------- 
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
    # Parse the JSON string to a dict
-    google_creds = json.loads(os.getenv('GOOGLE_CREDENTIALS'))
+    raw_creds = os.getenv("GOOGLE_CREDENTIALS")
+    if not raw_creds:
+        raise ValueError("GOOGLE_CREDENTIALS not found")
 
-    # Create credentials
+    # Convert escaped newlines to real ones
+    fixed_creds = raw_creds.replace("\\n", "\n")
+
+    google_creds = json.loads(fixed_creds)
     creds = Credentials.from_service_account_info(google_creds, scopes=SCOPES)
 
     gc = gspread.authorize(creds)
