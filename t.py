@@ -242,11 +242,11 @@ if authentication_status:
         for i, row in df.head(10).iterrows():
             pdf.cell(0, 8, f"{row.get('Name', 'N/A')} - {row.get('Vehicle Type', 'N/A')} - {row.get('Score', 'N/A')}", 0, 1)
 
-        # Return bytes buffer
-        pdf_buffer = io.BytesIO()
-        pdf.output(pdf_buffer)
-        pdf_buffer.seek(0)
+        # Return the PDF as a bytes buffer
+        pdf_output = pdf.output(dest="S").encode("latin1")
+        pdf_buffer = io.BytesIO(pdf_output)
         return pdf_buffer
+
 
     st.sidebar.markdown(f"{greeting}, {name}")
     logout_result = authenticator.logout('Logout', 'sidebar')
