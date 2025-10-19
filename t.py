@@ -29,6 +29,10 @@ st.markdown(
             justify-content: center;
             align-items: center;
         }
+        .block-container {
+            padding-top: 0.5rem !important;  /* default is ~6rem */
+            padding-bottom: 0rem !important;
+        }
         [data-testid="stSidebar"] {
             background-color: rgba(30,144,255,0.3);
             padding: 20px;
@@ -213,11 +217,11 @@ else:
 # Authenticated Dashboard
 # =========================
 if authentication_status:
-    st.sidebar.markdown("LabX Dashboard")
+    st.sidebar.markdown(f"{greeting}, {name}")
     logout_result = authenticator.logout('Logout', 'sidebar')
     if logout_result:
         st.rerun()  # Forces UI refresh after logout
-    st.header(f"{greeting}, {name}")
+    st.header(f"Dashboard")
 
 
     # ------------------------- 
