@@ -6,7 +6,7 @@ import plotly.express as px
 import yaml
 from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import os, io
 from fpdf import FPDF
 
@@ -210,7 +210,12 @@ except Exception as e:
 # =========================
 # Dynamic Greeting
 # =========================
-current_time = datetime.now().hour
+# Define East Africa Time (UTC+3)
+EAT = timezone(timedelta(hours=3))
+
+# Get current time in EAT
+current_time = datetime.now(EAT).hour
+
 if current_time < 12:
     greeting = "Good Morning"
 elif 12 <= current_time < 16:
@@ -290,7 +295,7 @@ if authentication_status:
     col1, col2 = st.columns(2)
     with col1:
         st.metric("Total Leads", total_leads)
-        st.metric("Avg. Lead Score", f"{avg_score:.1f}/5", 0)
+        st.metric("Avg. Lead Score", f"{avg_score:.1f}/5")
     with col2:
         st.metric("Completion Rate", f"{completion_rate:.1f}%")
         st.metric("High-Quality Leads", f"{high_quality:.1f}%")
