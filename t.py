@@ -222,36 +222,6 @@ else:
 # Authenticated Dashboard
 # =========================
 if authentication_status:
-    # Function to create the dashboard PDF (excluding sidebar)
-    def create_dashboard_pdf(df, name):
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_auto_page_break(auto=True, margin=15)
-        pdf.set_font("Arial", "B", 16)
-        pdf.set_text_color(255, 255, 255)
-        pdf.set_fill_color(30, 144, 255)
-        pdf.cell(0, 10, "LabX Dashboard Report", 0, 1, "C", fill=True)
-
-        pdf.set_font("Arial", "", 12)
-        pdf.cell(0, 10, f"Generated for: {name}", 0, 1)
-        pdf.cell(0, 10, f"Total Leads: {len(df)}", 0, 1)
-        pdf.cell(0, 10, f"Average Score: {df['Score'].mean():.2f}", 0, 1)
-        pdf.cell(0, 10, f"Date Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", 0, 1)
-
-        pdf.ln(10)
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 10, "Top 10 Recent Leads", 0, 1)
-
-        pdf.set_font("Arial", "", 10)
-        for i, row in df.head(10).iterrows():
-            pdf.cell(0, 8, f"{row.get('Name', 'N/A')} - {row.get('Vehicle Type', 'N/A')} - {row.get('Score', 'N/A')}", 0, 1)
-
-        # Return the PDF as a bytes buffer
-        pdf_output = pdf.output(dest="S").encode("latin1")
-        pdf_buffer = io.BytesIO(pdf_output)
-        return pdf_buffer
-
-
     st.sidebar.markdown(f"{greeting}, {name}")
     logout_result = authenticator.logout('Logout', 'sidebar')
     if logout_result:
@@ -309,30 +279,6 @@ if authentication_status:
         (df['Vehicle Type'].isin(vehicle_types))
     )
     filtered_df = df[mask].copy()
-
-    # Create PDF bytes
-    pdf_buffer = create_dashboard_pdf(filtered_df, name)
-    b64_pdf = base64.b64encode(pdf_buffer.read()).decode('utf-8')
-    # Render icon button at top right
-    download_icon_html = f"""
-        <div style='position: fixed; top: 15px; right: 25px; z-index: 999;'>
-            <a href="data:application/octet-stream;base64,{b64_pdf}" download="LabX_Dashboard.pdf"
-            style="background-color:#1E90FF; padding:10px 12px; border-radius:50%; text-decoration:none;
-                    box-shadow:0 0 10px rgba(0,0,0,0.3);">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="white" viewBox="0 0 16 16">
-                    <path d="M.5 9.9a.5.5 0 0 1 .5.5V13a1 1 0 0 0 1 1h12a1
-                            1 0 0 0 1-1V10.4a.5.5 0 0 1 1 0V13a2 2
-                            0 0 1-2 2H2a2 2 0 0 1-2-2V10.4a.5.5 0 0 1
-                            .5-.5z"/>
-                    <path d="M7.646 10.854a.5.5 0 0 0 .708 0l3-3a.5.5 0
-                            0 0-.708-.708L8.5 9.293V1.5a.5.5 0 0
-                            0-1 0v7.793L5.354 7.146a.5.5 0 1
-                            0-.708.708l3 3z"/>
-                </svg>
-            </a>
-        </div>
-    """
-    st.markdown(download_icon_html, unsafe_allow_html=True)
     # ------------------------- 
     # KPIs
     # ------------------------- 
@@ -344,7 +290,7 @@ if authentication_status:
     col1, col2 = st.columns(2)
     with col1:
         st.metric("Total Leads", total_leads)
-        st.metric("Avg. Lead Score", f"{avg_score:.1f}/5")
+        st.metric("Avg. Lead Score", f"{avg_score:.1f}/5", 0)
     with col2:
         st.metric("Completion Rate", f"{completion_rate:.1f}%")
         st.metric("High-Quality Leads", f"{high_quality:.1f}%")
